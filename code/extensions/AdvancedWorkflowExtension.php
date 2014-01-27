@@ -115,6 +115,27 @@ class AdvancedWorkflowExtension extends LeftAndMainExtension {
 	protected function saveAsDraftWithAction(Form $form, DataObject $item) {
 		$form->saveInto($item);
 		$item->write();
+	}
+	
+	/**
+	 * Export this workflow definition and prompt the user to download it.
+	 * 
+	 * @param array $data
+	 * @param \Form $form
+	 * @param \SS_HTTPRequest $request
+	 * @return void
+	 */
+	public function exportworkflow($data, Form $form, SS_HTTPRequest $request) {
+		$export = new WorkflowDefinitionExporter($data['WorkflowDefinitionID']);
+		$exportFilename = $export::$export_filename_prefix.'-'.$data['WorkflowDefinitionID'].'.'.$exportMap['suffix'];
+		$exportMap = $export->formatMap;
+		$filedata = array(
+			'name' => $exportFilename,
+			'mime' => $exportMap['mime'],
+			'body' => $export->export(),
+			'size' => $exportMap['size']
+		);
+		$export->sendFile($filedata);
 	}	
 
 }

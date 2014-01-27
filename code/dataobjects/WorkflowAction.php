@@ -44,6 +44,15 @@ class WorkflowAction extends DataObject {
 	public static $instance_class = 'WorkflowActionInstance';
 	
 	public static $icon = 'advancedworkflow/images/action.png';
+	
+	/**
+	 * Cleans out problematic strings when using YAML exports
+	 * 
+	 * @return string
+	 */
+	public function Title() {
+		return WorkflowDefinitionExporter::raw2yaml($this->Title);
+	}
 
 	/**
 	 * Can documents in the current workflow state be edited?

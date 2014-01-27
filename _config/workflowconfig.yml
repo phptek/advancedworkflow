@@ -8,3 +8,9 @@ SiteTree:
 CMSPageEditController:
     extensions:
         - AdvancedWorkflowExtension
+WorkflowDefinitionExporter:
+    exportFormat: YML
+    exportMimeType: text/x-yaml
+File:
+    extensions:
+        - FileWorkflowExportExtension

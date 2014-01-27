@@ -1,0 +1,43 @@
+<?php
+/**
+ * Tests for Workflow Export logic.
+ *
+ * @author     russell@silverstripe.com
+ * @license    BSD License (http://silverstripe.org/bsd-license/)
+ * @package    advancedworkflow
+ * @subpackage tests
+ */
+class WorkflowDefinitionExporterTest extends SapphireTest {
+
+	/**
+	 * Tests WorkflowDefinitionExporter#export()
+	 */
+	public function testExport() {
+		//
+	}
+	
+	/**
+	 * Tests WorkflowDefinitionExporter#format()
+	 */
+	public function testFormat() {
+		//
+	}
+	
+	/**
+	 * Tests WorkflowDefinitionExporter#setFormatMap()
+	 */
+	public function testSetFormatMap() {
+		//
+	}
+	
+	/**
+	 * Tests WorkflowDefinitionExporter#raw2yaml()
+	 * 
+	 * Note: There is much more to YAML than this, but for the moment, this is all that causes exports
+	 * to fail.
+	 */
+	public function testRaw2yaml() {
+		
+	}
+
+}

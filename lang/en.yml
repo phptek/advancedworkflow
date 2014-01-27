@@ -104,6 +104,8 @@ en:
     ADDAFTERSAVING: 'You can add workflow steps after you save for the first time.'
     CHOOSE_TEMPLATE: 'Choose template (optional)'
     CHOOSE_TEMPLATE_RIGHT: 'If set, this workflow definition will be automatically updated if the template is changed'
+    IMPORT_TEMPLATE: 'Import template (optional)'
+    IMPORT_TEMPLATE_RIGHT: 'Upload an exported workflow definition.'    
     DESCRIPTION: Description
     GROUPS: 'Restrict to Groups'
     LATEST_VERSION: 'Latest version is %s'
@@ -184,3 +186,5 @@ en:
     TabTitle: 'Restrict to users'
   advancedworkflow:
     EMBARGO_DSIRD_ERROR: 'This date has already passed, please enter a valid future date.'
+  ImportedWorkflowFile:
+    FAILED_TO_MOVE_YAML: 'Failed to move uploaded YAML.'

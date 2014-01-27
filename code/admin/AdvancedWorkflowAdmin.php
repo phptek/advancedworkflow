@@ -9,11 +9,20 @@ class AdvancedWorkflowAdmin extends ModelAdmin {
 	public static $menu_priority = -1;
 	public static $url_segment   = 'workflows';
 	private static $menu_icon = "advancedworkflow/images/workflow-menu-icon.png";
-
+	
+	private static $allowed_actions = array(
+		'export'
+	);
+	
+	private static $url_handlers = array(
+		'$ModelClass/export/$ID!' => 'export',
+		'$ModelClass/$Action' => 'handleAction',
+		'' => 'index'
+	);
 
 	public static $managed_models  = 'WorkflowDefinition';
 	public static $model_importers = array();
-	
+
 	public static $dependencies = array(
 		'workflowService'		=> '%$WorkflowService',
 	);
@@ -40,6 +49,8 @@ class AdvancedWorkflowAdmin extends ModelAdmin {
 	public function init() {
 		parent::init();
 		Requirements::add_i18n_javascript('advancedworkflow/javascript/lang');
+		Requirements::javascript('advancedworkflow/javascript/WorkflowField.js');
+		Requirements::css('advancedworkflow/css/WorkflowField.css');
 	}	
 
 	/*
@@ -129,6 +140,7 @@ class AdvancedWorkflowAdmin extends ModelAdmin {
 			});
 			
 			$grid->getConfig()->getComponentByType('GridFieldDetailForm')->setItemRequestClass('WorkflowDefinitionItemRequestClass');
+			$grid->getConfig()->addComponent(new GridFieldExportAction());
 		}
 		
 		return $form;
@@ -233,6 +245,29 @@ class AdvancedWorkflowAdmin extends ModelAdmin {
 			return $this->workflowService->userSubmittedItems($user);
 		}
 	}
+	
+	/**
+	 * Spits out an exported version of the selected WorkflowDefinition for download.
+	 * 
+	 * @param \SS_HTTPRequest $request
+	 */
+	public function export(SS_HTTPRequest $request) {
+		$url = explode('/', $request->getURL());
+		$definitionID = end($url);
+		if($definitionID && is_numeric($definitionID)) {
+			$exporter = new WorkflowDefinitionExporter($definitionID);
+			$exportMap = $exporter->getFormatMap();
+			$exportFilename = WorkflowDefinitionExporter::$export_filename_prefix.'-'.$definitionID.'.'.$exportMap['suffix'];
+			$exportBdy = $exporter->export();
+			$fileData = array(
+				'name' => $exportFilename,
+				'mime' => $exportMap['mime'],
+				'body' => $exportBdy,
+				'size' => $exporter->getExportSize($exportBdy)
+			);
+			return $exporter->sendFile($fileData);
+		}
+	}	
 }
 
 class WorkflowDefinitionItemRequestClass extends GridFieldDetailForm_ItemRequest {

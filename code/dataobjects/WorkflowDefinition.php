@@ -24,6 +24,10 @@ class WorkflowDefinition extends DataObject {
 		'RemindDays'		=> 'Int',
 		'Sort'				=> 'Int'
 	);
+	
+	public static $has_one = array(
+		'ImportedDefinition' => 'File'
+	);
 
 	public static $default_sort = 'Sort';
 
@@ -48,8 +52,6 @@ class WorkflowDefinition extends DataObject {
 	public static $icon = 'advancedworkflow/images/definition.png';
 
 	public static $default_workflow_title_base = 'My Workflow';
-	
-	public static $default_workflow_title_incr = 1;
 
 	public static $workflow_defs = array();
 
@@ -72,15 +74,14 @@ class WorkflowDefinition extends DataObject {
 	}
 
 	/**
-	 * Ensure a sort value is set
+	 * Ensure a sort value is set and we get a useable initial workflow title.
 	 */
 	public function onBeforeWrite() {
 		if(!$this->Sort) {
 			$this->Sort = DB::query('SELECT MAX("Sort") + 1 FROM "WorkflowDefinition"')->value();
 		}
-		// Use default title if no title
 		if(!$this->ID) {
-			$this->getDefaultWorkflowTitle();
+			$this->Title = $this->getDefaultWorkflowTitle();
 		}
 		parent::onBeforeWrite();
 	}
@@ -88,11 +89,29 @@ class WorkflowDefinition extends DataObject {
 	/**
 	 * After we've been written, check whether we've got a template and to then
 	 * create the relevant actions etc.  
+	 * 
+	 * Logic here checks from which "source" we'd like to create our workflow:
+	 * 1). From the value of the UploadField (Imported YAML)
+	 * 2). From the value of the DropDownField (Default YAML template _or_ previousely uploaded imported YAML)
+	 * 3). Both of the above are empty, so allow user to manually create a workflow definition in the CMS UI
 	 */
 	public function onAfterWrite() {
 		parent::onAfterWrite();
 
-		if ($this->numChildren() == 0 && $this->Template && !$this->TemplateVersion) {
+		// Check to see if we have an uploaded import
+		$req = Controller::curr()->getRequest();
+		$upload = null;
+		if(isset($req['ImportedDefinition']) && isset($req['ImportedDefinition']['Files'][0])) {
+			$upload = DataObject::get_by_id('File', $req['ImportedDefinition']['Files'][0]);
+		}
+
+		// Selection+Creation made via UploadField
+		if($upload && $this->numChildren() == 0 && !$this->Template && !$this->TemplateVersion) {
+			$this->Template = $upload->Title;
+			$this->workflowService->defineFromTemplate($this, $this->Template);
+		}		
+		// Selection+Creation made via DropDownField
+		if(!$upload && $this->numChildren() == 0 && $this->Template && !$this->TemplateVersion) {
 			$this->workflowService->defineFromTemplate($this, $this->Template);
 		}
 	}
@@ -137,7 +156,7 @@ class WorkflowDefinition extends DataObject {
 				new NumericField('RemindDays', ''),
 				new LabelField('ReminderEmailAfter', $after)
 			));
-		}
+		}		
 
 		if($this->ID) {
 			if ($this->Template) {
@@ -145,7 +164,7 @@ class WorkflowDefinition extends DataObject {
 				$fields->addFieldToTab('Root.Main', new ReadonlyField('Template', $this->fieldLabel('Template'), $this->Template));
 				$fields->addFieldToTab('Root.Main', new ReadonlyField('TemplateDesc', _t('WorkflowDefinition.TEMPLATE_INFO', 'Template Info'), $template ? $template->getDescription() : ''));
 				$fields->addFieldToTab('Root.Main', $tv = new ReadonlyField('TemplateVersion', $this->fieldLabel('TemplateVersion')));
-				$tv->setRightTitle(sprintf(_t('WorkflowDefinition.LATEST_VERSION', 'Latest version is %s'), $template->getVersion()));
+				$tv->setRightTitle(sprintf(_t('WorkflowDefinition.LATEST_VERSION', 'Latest version is %s'), $template ? $template->getVersion() : ''));
 				
 			}
 
@@ -154,13 +173,29 @@ class WorkflowDefinition extends DataObject {
 			));
 		} else {
 			// add in the 'template' info
-			$templates = $this->workflowService->getTemplates();
+			$imports = singleton('WorkflowDefinitionImporter')->getImportedWorkflows();
+			$templates = $this->workflowService->getTemplates();			
+			if($imports) {
+				$templates = array_merge($templates, $imports);
+			}
+			$this->workflowService->setTemplates($templates);
+			
 			if (is_array($templates)) {
 				$items = array('' => '');
 				foreach ($templates as $template) {
 					$items[$template->getName()] = $template->getName();
 				}
 				$templates = array_combine(array_keys($templates), array_keys($templates));
+				
+				// Add an UploadField for importing previously exported workflow definitions. 
+				// Also allow .yml extensions.
+				$exportFileFormat = strtolower(Config::inst()->get('WorkflowDefinitionExporter', 'exportFormat'));
+				Config::inst()->update('File', 'allowed_extensions', array($exportFileFormat));
+				$importField = new UploadField('ImportedDefinition', _t('WorkflowDefinition.IMPORT_TEMPLATE', 'Import template (optional)'));
+				$importField->setDescription(_t('WorkflowDefinition.IMPORT_TEMPLATE_RIGHT', 'Upload an exported workflow definition.'));
+				$importField->setAllowedExtensions(array($exportFileFormat));
+				$fields->addFieldToTab('Root.Main', $importField);
+				
 				$fields->addFieldToTab('Root.Main', $dd = new DropdownField('Template', _t('WorkflowDefinition.CHOOSE_TEMPLATE', 'Choose template (optional)'), $items));
 				$dd->setRightTitle(_t('WorkflowDefinition.CHOOSE_TEMPLATE_RIGHT', 'If set, this workflow definition will be automatically updated if the template is changed'));
 			}
@@ -220,15 +255,14 @@ class WorkflowDefinition extends DataObject {
 			);
 			$fields->addFieldToTab('Root.Completed', $completed);
 		}
-
+		
 		return $fields;
 	}
 	
 	public function updateAdminActions($actions) {
 		if ($this->Template) {
 			$template = $this->workflowService->getNamedTemplate($this->Template);
-			
-			if ($this->TemplateVersion != $template->getVersion()) {
+			if ($template && $this->TemplateVersion != $template->getVersion()) {
 				$label = sprintf(_t('WorkflowDefinition.UPDATE_FROM_TEMLPATE', 'Update to latest template version (%s)'), $template->getVersion());
 				$actions->push($action = FormAction::create('updatetemplateversion', $label));
 			}
@@ -242,48 +276,62 @@ class WorkflowDefinition extends DataObject {
 		}
 	}
 
-	/*
-	 * Checks if a workflow-title already exists and offers a suitable default when users attempt to create a title-less workflow
+	/**
+	 * If a workflow-title doesn't already exist, we automatically create a suitable default title
+	 * when users attempt to create title-less workflow definitions.
 	 *
-	 * @see @link self::$default_workflow_title_base
-	 * @see @link self::$default_workflow_title_incr
-	 * @return string A new default workflow title
-	 * @todo Filter/alter query for only current-user's workflows. Avoids confusion when other users already have 'My Workflow 1' and user sees 'My Workflow 2'
+	 * @return string
+	 * @todo	Filter query on current-user's workflows. Avoids confusion when other users may already have 'My Workflow 1' 
+	 *			and user sees 'My Workflow 2'
 	 */
 	public function getDefaultWorkflowTitle() {
-		$this->setWorkflowDefinitions();
-		if($this->Title) {
-			return;
-		}
-		$base = self::$default_workflow_title_base;
-		$defs = $this->getWorkflowDefinitions();
+		// Where is the title coming from that we wish to test?
+		$incomingTitle = $this->incomingTitle();
+		$defs = DataObject::get('WorkflowDefinition')->map()->toArray();
 		$tmp = array();
+		
 		foreach($defs as $def) {
-			if(preg_match("#$base#",$def)) {
-				$last_part = preg_split("#\s#",$def,-1,PREG_SPLIT_NO_EMPTY);
-				$last_part = end($last_part);
-				if(in_array($base.' '.$last_part,$defs)) {
-					array_push($tmp,$last_part);
+			$parts = preg_split("#\s#", $def, -1, PREG_SPLIT_NO_EMPTY);		
+			$lastPart = array_pop($parts);
+			$match = implode(' ', $parts);
+			// @todo do all this in one preg_match_all() call
+			if(preg_match("#$match#", $incomingTitle)) {
+				// @todo use a simple incrementer??
+				if($incomingTitle.' '.$lastPart == $def) {
+					array_push($tmp, $lastPart);
 				}
 			}
 		}
-		if(count($tmp)>0) {
+
+		$incr = 1;
+		if(count($tmp)) {
 			sort($tmp,SORT_NUMERIC);
-			self::$default_workflow_title_incr = end($tmp)+1;
+			$incr = (int)end($tmp)+1;
 		}
-		$this->Title = self::$default_workflow_title_base.' '.self::$default_workflow_title_incr;
+		return $incomingTitle.' '.$incr;
 	}
-
-	public function getWorkflowDefinitions() {
-		return self::$workflow_defs;
-	}
-
-	/*
-	 * Setter to "cache" some basic workflow definiton data
+	
+	/**
+	 * Return the workflow definition title according to the source
+	 * 
+	 * @return string
 	 */
-	private function setWorkflowDefinitions() {
-		$workflow_defs = DataObject::get('WorkflowDefinition');
-		self::$workflow_defs = $workflow_defs->map()->toArray();
+	public function incomingTitle() {
+		$req = Controller::curr()->getRequest();
+		if(isset($req['ImportedDefinition']) && isset($req['ImportedDefinition']['Files'][0])) {
+			$upload = DataObject::get_by_id('File', $req['ImportedDefinition']['Files'][0]);
+			$incomingTitle = $upload->Title;			
+		}	
+		else if(isset($req['Template']) && !empty($req['Template'])) {
+			$incomingTitle = $req['Template'];
+		}
+		else if(isset($req['Title']) && !empty($req['Title'])) {
+			$incomingTitle = $req['Title'];
+		}	
+		else {
+			$incomingTitle = self::$default_workflow_title_base;
+		}		
+		return $incomingTitle;
 	}
 
 	public function canCreate($member=null) {
@@ -304,7 +352,7 @@ class WorkflowDefinition extends DataObject {
 	}
 	public function canDelete($member=null) {
 		return $this->userHasAccess($member);
-	}
+	}	
 
 	/**
 	 * Checks whether the passed user is able to view this ModelAdmin
@@ -322,5 +370,5 @@ class WorkflowDefinition extends DataObject {
 		if(Permission::checkMember($member, "VIEW_ACTIVE_WORKFLOWS")) {
 			return true;
 		}
-	}
+	}	
 }

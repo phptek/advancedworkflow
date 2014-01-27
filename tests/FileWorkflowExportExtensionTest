@@ -1,0 +1,40 @@
+<?php
+/**
+ * Tests for FileWorkflowExportExtension logic.
+ *
+ * @author     russell@silverstripe.com
+ * @license    BSD License (http://silverstripe.org/bsd-license/)
+ * @package    advancedworkflow
+ * @subpackage tests
+ */
+class FileWorkflowExportExtensionTest extends SapphireTest {
+	
+	/**
+	 * Tests FileWorkflowExportExtension#generateUploadName()
+	 */
+	public function testGenerateUploadName() {
+		//
+	}
+	
+	/**
+	 * Tests FileWorkflowExportExtension#ContentShow()
+	 */
+	public function testContentUpdate() {
+		//
+	}	
+	
+	/**
+	 * Tests WorkflowDefinitionExporter#contentShow()
+	 */
+	public function testContentShow() {
+		//
+	}
+	
+	/**
+	 * Tests WorkflowDefinitionExporter#canEdit()
+	 */
+	public function testCanEdit() {
+		//
+	}
+
+}

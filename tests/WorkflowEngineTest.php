@@ -130,7 +130,9 @@ class WorkflowEngineTest extends SapphireTest {
 		return $definition;
 	}
 	
-	
+	/**
+	 * @todo improve test with addition of Users+Groups in templates
+	 */
 	public function testCreateFromTemplate() {
 		$structure = array(
 			'First step'	=> array(
@@ -151,7 +153,7 @@ class WorkflowEngineTest extends SapphireTest {
 		
 		$template->setStructure($structure);
 		
-		$actions = $template->createActions();
+		$actions = $template->createRelations();
 		
 		$this->assertEquals(2, count($actions));
 		$this->assertTrue(isset($actions['First step']));
@@ -164,6 +166,32 @@ class WorkflowEngineTest extends SapphireTest {
 		$this->assertTrue($transitions->count() == 1);
 		
 		
+	}
+	
+	/**
+	 * Tests WorkflowTemplate#addManyManyToObject()
+	 */
+	public function testAddManyManyToObject() {
+	}
+	
+	/**
+	 * Tests WorkflowDefinition#getDefaultWorkflowTitle()
+	 * 
+	 */
+	public function testGetDefaultWorkflowTitle() {
+	}
+	
+	/**
+	 * Tests WorkflowDefinition#updateDefinition()
+	 */
+	public function testUpdateDefinition() {
+	}
+	
+	/**
+	 * Tests WorkflowService#getNamedTemplate()
+	 */
+	public function testGetNamedTemplate() {
+		//
 	}
 
 }

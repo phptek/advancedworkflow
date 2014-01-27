@@ -45,6 +45,15 @@ class WorkflowTransition extends DataObject {
 		'fieldMsg'	=>null,
 		'fieldValid'=>true
 	);
+	
+	/**
+	 * Cleans out problematic strings when using YAML exports
+	 * 
+	 * @return string
+	 */
+	public function Title() {
+		return WorkflowDefinitionExporter::raw2yaml($this->Title);
+	}	
 
 	/**
 	 * Returns true if it is valid for this transition to be followed given the

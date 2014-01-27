@@ -150,7 +150,8 @@ jQuery.entwine("workflow", function($) {
 
 			return false;
 		}
-	});
+	});	
+	
 
 	/*
 	 * Simple implementation of the jQuery-UI timepicker widget
@@ -274,3 +275,23 @@ jQuery.entwine("workflow", function($) {
 	});
 });
 
+jQuery.entwine("ss", function($) {
+	
+	/**
+	 * Prevents actions from causing an ajax reload of the field.
+	 *
+	 * This is specific to workflow export logic, where we don't want an AJAX request
+	 * interfering with browser download headers.
+	 */
+	$('.ss-gridfield .action.no-ajax.export-link').entwine({
+		onclick: function(e){	
+
+			window.location.href = $.path.makeUrlAbsolute(
+				$(this).attr('href')
+			);
+
+			return false;
+		}
+	});	
+	
+});

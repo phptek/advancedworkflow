@@ -1,0 +1,26 @@
+<?php
+/**
+ * Tests for Workflow Import logic.
+ *
+ * @author     russell@silverstripe.com
+ * @license    BSD License (http://silverstripe.org/bsd-license/)
+ * @package    advancedworkflow
+ * @subpackage tests
+ */
+class WorkflowDefinitionImporterTest extends SapphireTest {
+
+	/**
+	 * Tests WorkflowDefinitionImporter#getImportedWorkflows()
+	 */
+	public function testGetImportedWorkflows() {
+		//
+	}
+	
+	/**
+	 * Tests WorkflowDefinitionExporter#parseImport()
+	 */
+	public function testParseImport() {
+		//
+	}
+
+}
