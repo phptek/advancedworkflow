@@ -26,7 +26,7 @@ class NotifyUsersWorkflowAction extends WorkflowAction {
 			new TextField('EmailSubject', $this->fieldLabel('EmailSubject')),
 			new TextField('EmailFrom', $this->fieldLabel('EmailFrom')),
 
-			new TextareaField('EmailTemplate', $this->fieldLabel('EmailTemplate')),
+			new WorkflowBasicHTMLEditorField('basic', 'EmailTemplate', $this->fieldLabel('EmailTemplate'), 3, 20),
 			new ToggleCompositeField('FormattingHelpContainer',
 				$this->fieldLabel('FormattingHelp'), new LiteralField('FormattingHelp', $this->getFormattingHelp()))
 		));
