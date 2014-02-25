@@ -1,6 +1,6 @@
 <?php
 /**
- * A workflow action that notifies users attached to the workflow path that they have a task awaiting them.
+ * An HTMLEditorField extension that allows more control over config than the default.
  *
  * @license    BSD License (http://silverstripe.org/bsd-license/)
  * @package    advancedworkflow

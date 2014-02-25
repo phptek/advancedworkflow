@@ -31,4 +31,4 @@ HtmlEditorConfig::get("basic")->setButtonsForLine(2, array());
 HtmlEditorConfig::get("basic")->setButtonsForLine(3, array());
 
 // Add desired buttons
-HtmlEditorConfig::get("basic")->setButtonsForLine(1, "bold", "italic");
+HtmlEditorConfig::get("basic")->setButtonsForLine(1, "bold", "italic", "sslink");
