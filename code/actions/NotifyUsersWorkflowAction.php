@@ -11,7 +11,7 @@ class NotifyUsersWorkflowAction extends WorkflowAction {
 	public static $db = array(
 		'EmailSubject'			=> 'Varchar(100)',
 		'EmailFrom'				=> 'Varchar(50)',
-		'EmailTemplate'			=> 'Text',
+		'EmailTemplate'			=> 'HTMLText',
 		'ListingTemplateID'		=> 'Int',
 	);
 
@@ -19,6 +19,9 @@ class NotifyUsersWorkflowAction extends WorkflowAction {
 
 	public function getCMSFields() {
 		$fields = parent::getCMSFields();
+		
+		$configName = 'basic'; // @todo put this into _config/blah.yml
+		HtmlEditorConfig::set_active($configName);
 
 		$fields->addFieldsToTab('Root.Main', array(
 			new HeaderField('NotificationEmail', $this->fieldLabel('NotificationEmail')),
@@ -26,7 +29,7 @@ class NotifyUsersWorkflowAction extends WorkflowAction {
 			new TextField('EmailSubject', $this->fieldLabel('EmailSubject')),
 			new TextField('EmailFrom', $this->fieldLabel('EmailFrom')),
 
-			new WorkflowBasicHTMLEditorField('basic', 'EmailTemplate', $this->fieldLabel('EmailTemplate'), 3, 20),
+			new WorkflowHtmlEditorField($configName, 'EmailTemplate', $this->fieldLabel('EmailTemplate'), 3, 20),
 			new ToggleCompositeField('FormattingHelpContainer',
 				$this->fieldLabel('FormattingHelp'), new LiteralField('FormattingHelp', $this->getFormattingHelp()))
 		));

@@ -1,66 +1,45 @@
 <?php
 /**
- * An HTMLEditorField extension that allows more control over config than the default.
+ * A TinyMCE-powered WYSIWYG HTML editor field with image and link insertion and tracking capabilities. Editor fields
+ * are created from <textarea> tags, which are then converted with JavaScript.
  *
- * @license    BSD License (http://silverstripe.org/bsd-license/)
- * @package    advancedworkflow
- * @subpackage actions
+ * @author Russell Michell <russell@silverstripe.com>
+ * @author Hamish Friedlander <hamish@silverstripe.com>
+ * @author Stig Lindvist <stig@silverstripe.com>
+ * @package advancedworkflow
+ * @todo
+ * - Requirements::customScript() isn't working and the original TinyMCE config is still injected into the DOM
+ * - Need to ensure that the global JS var 'ssTinyMceConfig' taken from generated JS, takes on a JSON version of _config.php
  */
-class WorkflowBasicHTMLEditorField extends HtmlEditorField {
+class WorkflowHtmlEditorField extends HtmlEditorField {
+	
+	public static $config_name = '';
 	
 	/**
-	 * 
-	 * @param type $config
-	 * @param type $name
-	 * @param type $title
-	 * @param type $rows
-	 * @param type $cols
-	 * @param type $value
-	 * @param type $form
+	 * Includes the JavaScript neccesary for this field to work using the {@link Requirements} system.
 	 */
-	public function __construct($config, $name, $title = null, $rows = 30, $cols = 20, $value = '', $form = null) {
-		// Skip the HtmlEditorField's constructor
-		TextareaField::__construct($name, $title, $rows, $cols, $value, $form);
-
-		$this->addExtraClass('typography');
-		$this->addExtraClass("htmleditor$config");
-
-		self::include_js($config);
-	}	
-
+	public static function include_js() {
+		//parent::include_js();
+		$configObj = HtmlEditorConfig::get(self::$config_name);
+//		var_dump($configObj->generateJS());
+//		die;
+		
+		Requirements::customScript($configObj->generateJS(), 'htmlEditorConfig');
+	}
+	
 	/**
-	 * 
-	 * @param type $configName
+	 * @see TextareaField::__construct()
 	 */
-	public static function include_js($configName) {
-		Requirements::javascript(MCE_ROOT . 'tiny_mce_src.js');
-
-		$config = HtmlEditorConfig::get($configName);
-		$config->setOption('mode', 'none');
-		$config->setOption('editor_selector', "htmleditor$configName");
-
-		$js = <<<EOT
-Behaviour.register({
-    'textarea.htmleditor$configName' : {
-        initialize : function() {
-            if(typeof tinyMCE != 'undefined'){
-                    var oldsettings = tinyMCE.settings;
-                    ".$config->generateJS()."
-                                        tinyMCE.execCommand('mceAddControl', true, this.id);
-                                        tinyMCE.settings = oldsettings;
-                                        
-                    this.isChanged = function() {
-                        return tinyMCE.getInstanceById(this.id).isDirty();
-                    }
-                    this.resetChanged = function() {
-                        inst = tinyMCE.getInstanceById(this.id);
-                        if (inst) inst.startContent = tinymce.trim(inst.getContent({format : 'raw', no_events : 1}));
-                    }
-			}
-        }
-    }
-});
-EOT;
-		Requirements::customScript($js, "htmlEditorConfig-$configName");
+	public function __construct($configName, $name, $title = null, $value = '') {
+		self::$config_name = $configName;
+		
+		TextareaField::__construct($name, $title, $value);
+		
+		$this->addExtraClass('typography');
+		
+		$editorCSSHook = HtmlEditorConfig::get(self::$config_name)->getOption('editor_selector');
+		$this->addExtraClass($editorCSSHook);
+		
+		self::include_js();
 	}
 }
