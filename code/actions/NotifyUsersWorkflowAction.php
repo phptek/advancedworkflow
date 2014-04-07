@@ -201,5 +201,76 @@ class NotifyUsersWorkflowAction extends WorkflowAction {
 			<p><strong>{\$Context.($fieldName)}</strong><br>$context</p>
 			<p><strong>{\$CommentHistory}</strong><br>$commentHistory</p>";
 	}
+	
+	/**
+	 * 
+	 * @return Validator $validator
+	 */
+	public function getRequiredFields() {
+		die('test');
+		$validator = new NotifyUsersWorkflowActionValidator();
+		return $validator;
+	}
 
+}
+
+/**
+ * 
+ * A validator specific to the NotifyUsersWorkflowAction
+ */
+class NotifyUsersWorkflowActionValidator extends Validator {
+
+	/**
+	 * 
+	 * @param type $data
+	 * @return boolean
+	 */
+	public function php($data) {
+		$valid = true;
+		
+		if($fieldsInvalid = $this->validateFields()) {
+			$fieldName = $fieldsInvalid['name'];
+			$fieldMesg = $fieldsInvalid['mesg'];
+			
+			$errorMessage = _t(
+				'Form.FIELDISREQUIRED', 
+				"{$fieldMesg}",
+				array('name' => $fieldName)
+			);
+
+			$this->validationError(
+				$fieldName,
+				$errorMessage,
+				"required"
+			);
+
+			$valid = false;			
+		}
+
+		return $valid;
+	}
+	
+	/**
+	 * 
+	 * @param FormField $field
+	 * @return array | boolean
+	 */
+	protected function validateFields() {
+		$emailTemplateField = $this->form->Fields()->fieldByName('EmailTemplate');
+		$mesg = $name = null;
+		if(!strlen($emailTemplateField->value())) {
+			$mesg = 'Empty!!';
+			$name = 'EmailTemplate';
+		}
+		
+		if(!$mesg || !$name) {
+			return false;
+		}
+		
+		return array(
+			'mesg' => $mesg,
+			'name' => $name
+		);
+	}
+	
 }
