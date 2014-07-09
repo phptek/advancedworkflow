@@ -42,6 +42,12 @@ Injector:
             - title: '$Title'
 		  <% end_loop %>
 		  <% end_if %>
+		  <% if ExportableFields %>
+		  exportable-fields:
+		    <% loop ExportableFields %>
+			- $Current
+			<% end_loop %>
+		  <% end_if %>
 		  <% if Transitions %>
           transitions:
 		  <% loop Transitions %>

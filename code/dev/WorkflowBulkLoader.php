@@ -51,6 +51,7 @@ class WorkflowBulkLoader extends BulkLoader {
 		$template->setStructure($struct['properties']['structure']);
 
 		$def = WorkflowDefinition::create();
+		// @todo use Injector::registerService() instead?
 		$def->workflowService = singleton('WorkflowService');
 		$def->Template = $template->getName();
 		$obj = $def->workflowService->defineFromTemplate($def, $def->Template);

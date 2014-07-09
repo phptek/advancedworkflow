@@ -15,6 +15,19 @@ class NotifyUsersWorkflowAction extends WorkflowAction {
 		'ListingTemplateID'		=> 'Int',
 	);
 
+	/**
+	 *
+	 * An optional array to define which fields as keys from self::$db will get
+	 * exported.
+	 * 
+	 * @var array
+	 */
+	private static $workflow_exportable = array(
+		'EmailSubject',
+		'EmailFrom',
+		'EmailTemplate'
+	);
+
 	public static $icon = 'advancedworkflow/images/notify.png';
 
 	public function getCMSFields() {

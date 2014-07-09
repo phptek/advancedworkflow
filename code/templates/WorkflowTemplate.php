@@ -230,7 +230,19 @@ class WorkflowTemplate {
 		// Create the necessary relation in WorkflowDefinition_Groups
 		$source = array('groups' => $groups);
 		$this->addManyManyToObject($definition, $source, $clear);
-	}	
+	}
+
+	/**
+	 *
+	 * Create custom fields on imported actions according to
+	 * {@link WorkflowAction->ExportableFields()}
+	 *
+	 * @param WorkflowDefinition $definition
+	 * @return void
+	 */
+	protected function createCustomFields(WorkflowDefinition $definition) {
+
+	}
 	
 	/**
 	 * Update the transitions for a given action

@@ -246,10 +246,21 @@ class WorkflowAction extends DataObject {
 	 */
 	public function updateFrontendWorkflowFields($fields, $workflow){	
 		
-	}	
-	
+	}
 
 	public function Icon() {
 		return $this->stat('icon');
+	}
+
+	/**
+	 *
+	 * @return	mixed (null | array $exportable)
+	 * @todo	Remove any fields from $workflow_exportable that are _not_ defined
+	 *			on the original $db static
+	 */
+	public function ExportableFields() {
+		if($exportable = $this->stat('workflow_exportable')) {
+			return $exportable;
+		}
 	}
 }
