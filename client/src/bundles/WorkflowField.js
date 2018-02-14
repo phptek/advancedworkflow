@@ -60,7 +60,6 @@ jQuery.entwine('workflow', ($) => {
   $('.workflow-field .workflow-field-actions').entwine({
     onmatch() {
       $('.workflow-field .workflow-field-action-disabled').on('click', () => false);
-
       this.sortable({
         axis: 'y',
         containment: this,
@@ -71,11 +70,10 @@ jQuery.entwine('workflow', ($) => {
           const actions = $(this).find('.workflow-field-action');
           const field = $(this).closest('.workflow-field');
           const link = field.data('sort-link');
-          const ids = actions.map(() => $(this).data('id'));
-
+          const ids = actions.each(function(ind, ele) { return $(ele).data('id'); });
           const data = {
-            'id[]': ids.get(),
-            class: 'WorkflowAction',
+            'id[]': ids,
+            class: 'Symbiote\\AdvancedWorkflow\\DataObjects\\WorkflowAction',
             SecurityID: field.data('securityid'),
           };
 
@@ -97,11 +95,10 @@ jQuery.entwine('workflow', ($) => {
           const trans = $(this).find('li');
           const field = $(this).closest('.workflow-field');
           const link = field.data('sort-link');
-          const ids = trans.map(() => $(this).data('id'));
-
+          const ids = trans.map(() => $('li').data('id'));
           const data = {
             'id[]': ids.get(),
-            class: 'WorkflowTransition',
+            class: 'Symbiote\\AdvancedWorkflow\\DataObjects\\WorkflowTransition',
             parent: $(this).closest('.workflow-field-action').data('id'),
             SecurityID: field.data('securityid'),
           };

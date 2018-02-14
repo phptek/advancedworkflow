@@ -60,6 +60,9 @@ class WorkflowField extends FormField
         $class = $request->postVar('class');
         $ids   = $request->postVar('id');
 
+        var_dump($ids, $class);
+        die;
+
         if ($class == WorkflowAction::class) {
             $objects = $this->Definition()->Actions();
         } elseif ($class == WorkflowTransition::class) {
